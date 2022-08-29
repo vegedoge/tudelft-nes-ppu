@@ -2,13 +2,20 @@ use crate::cpu::Cpu;
 use crate::screen::{ButtonName, Message, Screen, ScreenWriter};
 use crate::{Mirroring, Ppu, CPU_FREQ, HEIGHT, WIDTH};
 use pixels::{Pixels, SurfaceTexture};
+use std::error::Error;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use std::{env, thread};
 use winit::event::{ElementState, Event, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 
-fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter, max_cycles: Option<usize>) {
+fn run_ppu(
+    mirroring: Mirroring,
+    cpu: &mut impl Cpu,
+    writer: &mut ScreenWriter,
+    max_cycles: Option<usize>,
+) -> Result<(), Box<dyn Error>> {
     let mut ppu = Ppu::new(mirroring);
 
     let mut busy_time = Duration::default();
@@ -65,9 +72,9 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter, 
                 }
             }
 
-            if !cpu.tick(&mut ppu) {
+            if let Err(e) = cpu.tick(&mut ppu) {
                 eprintln!("cpu stopped");
-                return
+                return Err(e);
             }
 
             for _ in 0..3 {
@@ -79,7 +86,7 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter, 
 
         if let Some(max_cycles) = max_cycles {
             if cycles > max_cycles {
-                break;
+                break Ok(());
             }
         }
 
@@ -104,9 +111,13 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter, 
 }
 
 /// Like [`run_cpu_headless`], but takes a cycle limit after which the function returns.
-pub fn run_cpu_headless_for<CPU>(cpu: &mut CPU, mirroring: Mirroring, cycle_limit: usize)
-    where
-        CPU: Cpu + 'static,
+pub fn run_cpu_headless_for<CPU>(
+    cpu: &mut CPU,
+    mirroring: Mirroring,
+    cycle_limit: usize,
+) -> Result<(), Box<dyn Error>>
+where
+    CPU: Cpu + 'static,
 {
     let (_, mut writer) = Screen::dummy();
 
@@ -115,7 +126,7 @@ pub fn run_cpu_headless_for<CPU>(cpu: &mut CPU, mirroring: Mirroring, cycle_limi
 
 /// Runs the cpu as if connected to a PPU, but doesn't actually open
 /// a window. This can be useful in tests.
-pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring)
+pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring) -> Result<(), Box<dyn Error>>
 where
     CPU: Cpu + 'static,
 {
@@ -147,7 +158,14 @@ where
 
     let (mut screen, mut writer, control_tx) = Screen::new(pixels, window);
 
-    thread::spawn(move || run_ppu(mirroring, &mut cpu, &mut writer, None));
+    let handle = Arc::new(Mutex::new(Some(thread::spawn(move || {
+        match run_ppu(mirroring, &mut cpu, &mut writer, None) {
+            Ok(_) => unreachable!(),
+            Err(e) => {
+                panic!("cpu implementation returned an error: {e}")
+            }
+        }
+    }))));
 
     let mut last = Instant::now();
     let wait_time = Duration::from_secs_f64(1.0 / 60.0);
@@ -158,7 +176,10 @@ where
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
-            } => *control_flow = ControlFlow::Exit,
+            } => {
+                *control_flow = ControlFlow::Exit;
+                return;
+            }
             Event::WindowEvent {
                 event: WindowEvent::Focused(f),
                 ..
@@ -243,6 +264,15 @@ where
         }
 
         *control_flow = ControlFlow::WaitUntil(Instant::now() + wait_time);
+
+        if handle.lock().unwrap().as_ref().unwrap().is_finished() {
+            handle
+                .lock()
+                .unwrap()
+                .take()
+                .expect("cpu emulation exited unexpectedly");
+            return;
+        }
 
         if Instant::now().duration_since(last) > wait_time {
             screen.redraw();

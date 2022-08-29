@@ -1,4 +1,5 @@
 use crate::Ppu;
+use std::error::Error;
 
 /// To use your cpu with the provided PPU library, you need to implement this trait for
 /// your CPU.
@@ -7,7 +8,7 @@ pub trait Cpu {
     /// is important for some games to work properly. That means that it *won't* work to
     /// execute an entire instruction every time tick is called. It should take *multiple*
     /// calls to tick to execute one instruction.
-    fn tick(&mut self, ppu: &mut Ppu) -> bool;
+    fn tick(&mut self, ppu: &mut Ppu) -> Result<(), Box<dyn Error>>;
 
     /// This method is called when the PPU (implemented by us) wants to read a byte from memory.
     /// The byte that is actually read, may depend on the current mapper state. Since you implement
