@@ -1,0 +1,28 @@
+# Official rust image.
+image: "rust:1.63"
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
+
+before_script:
+  - apt-get update -yqq
+  - apt-get install -yqq --no-install-recommends build-essential
+
+cache:
+  key: rust-cache-$CI_COMMIT_REF_SLUG
+  paths:
+    - .cargo
+    - target
+
+# Use cargo to test the project
+lint:
+  before_script:
+  - rustup component add clippy rustfmt
+  script:
+    - cargo fmt --all -- --check
+    - cargo clippy -- -D warnings
+test:
+  
+  script:
+    - rustc --version && cargo --version  # Print version info for debugging
+    - cargo test --verbose
