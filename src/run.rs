@@ -8,7 +8,7 @@ use winit::event::{ElementState, Event, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 
-fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter) {
+fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter, max_cycles: Option<usize>) {
     let mut ppu = Ppu::new(mirroring);
 
     let mut busy_time = Duration::default();
@@ -66,7 +66,8 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter) 
             }
 
             if !cpu.tick(&mut ppu) {
-                panic!("cpu stopped");
+                eprintln!("cpu stopped");
+                return
             }
 
             for _ in 0..3 {
@@ -75,6 +76,13 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter) 
         }
 
         cycles += ITER_PER_CYCLE;
+
+        if let Some(max_cycles) = max_cycles {
+            if cycles > max_cycles {
+                break;
+            }
+        }
+
         let now = Instant::now();
         busy_time += now.duration_since(last_tick);
 
@@ -95,6 +103,16 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter) 
     }
 }
 
+/// Like [`run_cpu_headless`], but takes a cycle limit after which the function returns.
+pub fn run_cpu_headless_for<CPU>(cpu: &mut CPU, mirroring: Mirroring, cycle_limit: usize)
+    where
+        CPU: Cpu + 'static,
+{
+    let (_, mut writer) = Screen::dummy();
+
+    run_ppu(mirroring, cpu, &mut writer, Some(cycle_limit))
+}
+
 /// Runs the cpu as if connected to a PPU, but doesn't actually open
 /// a window. This can be useful in tests.
 pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring)
@@ -103,7 +121,7 @@ where
 {
     let (_, mut writer) = Screen::dummy();
 
-    run_ppu(mirroring, cpu, &mut writer)
+    run_ppu(mirroring, cpu, &mut writer, None)
 }
 
 /// Runs the cpu with the ppu. Takes ownership of the cpu, creates
@@ -129,7 +147,7 @@ where
 
     let (mut screen, mut writer, control_tx) = Screen::new(pixels, window);
 
-    thread::spawn(move || run_ppu(mirroring, &mut cpu, &mut writer));
+    thread::spawn(move || run_ppu(mirroring, &mut cpu, &mut writer, None));
 
     let mut last = Instant::now();
     let wait_time = Duration::from_secs_f64(1.0 / 60.0);

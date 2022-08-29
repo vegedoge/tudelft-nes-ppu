@@ -1,6 +1,6 @@
 [package]
 name = "tudelft-nes-ppu"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = [
     "Victor Roest <victor@xirion.net>",
