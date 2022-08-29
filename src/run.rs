@@ -95,6 +95,8 @@ fn run_ppu(mirroring: Mirroring, cpu: &mut impl Cpu, writer: &mut ScreenWriter) 
     }
 }
 
+/// Runs the cpu as if connected to a PPU, but doesn't actually open
+/// a window. This can be useful in tests.
 pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring)
 where
     CPU: Cpu + 'static,
@@ -104,6 +106,11 @@ where
     run_ppu(mirroring, cpu, &mut writer)
 }
 
+/// Runs the cpu with the ppu. Takes ownership of the cpu, creates
+/// a PPU instance, and runs the tick function at the correct rate.
+///
+/// This function *has to be called from the main thread*. This means it will not
+/// work from unit tests. Use [`run_cpu_headless`] there.
 pub fn run_cpu<CPU>(mut cpu: CPU, mirroring: Mirroring)
 where
     CPU: Cpu + Send + 'static,

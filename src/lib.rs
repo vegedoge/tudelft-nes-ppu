@@ -1,6 +1,10 @@
+/// The height of the NES output video signal
 pub const WIDTH: u32 = 256;
+/// The width of the NES output video signal
 pub const HEIGHT: u32 = 240;
-// NTSC
+
+/// CPU frequency constant. This assumes NTSC emulation (instead of PAL).
+/// That's also what's emulated in the rest of the ppu.
 pub const CPU_FREQ: f64 = 1.789773 * 1_000_000.0; //hz
 
 mod cpu;

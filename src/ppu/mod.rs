@@ -54,6 +54,10 @@ pub struct Ppu {
 }
 
 impl Ppu {
+    /// Creates a new PPU. The mirroring mode needs to be given and is constant
+    /// for the lifetime of the emulator. Some real-world memory mappers could howerver
+    /// change this in the middle of running a game. This is currently *not* supported
+    /// by the emulator.
     pub fn new(mirroring: Mirroring) -> Self {
         Self {
             scanline: 0,
@@ -120,6 +124,7 @@ impl Ppu {
         }
     }
 
+    /// Gets what buttons are currently pressed by the user/player.
     pub fn get_joypad_state(&self) -> Buttons {
         self.buttons
     }
@@ -177,7 +182,7 @@ impl Ppu {
     /// Read from a register of the PPU. This is supposed to be called from the CPU when a read occurs
     /// to one of the addresses as defined in the spec (and also mentioned in the docs of [`PpuRegister`])
     ///
-    /// We ask for a reference to the cpu here, since we sometimes need to read from the cartridge
+    /// We ask for a reference to the cpu here, since we sometimes need to read from the cartridge.
     pub fn read_ppu_register(&mut self, register: PpuRegister, cpu: &impl Cpu) -> u8 {
         match register {
             PpuRegister::Controller => {}
@@ -230,7 +235,7 @@ impl Ppu {
         self.bus
     }
 
-    /// For writes to 0x4041 (see NES docs at https://www.nesdev.org/wiki/PPU_registers#OAMDMA)
+    /// For writes to 0x4041 (see NES docs at [https://www.nesdev.org/wiki/PPU_registers#OAMDMA](https://www.nesdev.org/wiki/PPU_registers#OAMDMA))
     ///
     /// There is no real DMA. When a value is written to 0x4014, you are supposed to pass the PPU
     /// the right 256 bytes instantly, through this function.

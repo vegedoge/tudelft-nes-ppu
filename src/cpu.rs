@@ -1,5 +1,7 @@
 use crate::Ppu;
 
+/// To use your cpu with the provided PPU library, you need to implement this trait for
+/// your CPU.
 pub trait Cpu {
     /// Called every cpu cycle. Note that some instructions take multiple cycles, which
     /// is important for some games to work properly. That means that it *won't* work to

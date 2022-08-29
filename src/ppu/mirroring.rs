@@ -14,10 +14,12 @@ pub enum Mirroring {
     /// All banks are unique
     FourScreen,
     /// All banks are a copy of the first bank
+    ///
     /// TODO: this feature may not be fully supported by our emulation. Notably, mirroring can't change
     ///       while some mappers have dynamically changing mirroring modes
     SingleScreenLower,
     /// All banks are a copy of the second bank
-    /// TODO: this feature may not be fully supported by our emulation. See [`SingleScreenLower`]
+    ///
+    /// TODO: this feature may not be fully supported by our emulation. See [`Mirroring::SingleScreenLower`]
     SingleScreenUpper,
 }
