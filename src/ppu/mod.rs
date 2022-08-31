@@ -155,7 +155,7 @@ impl Ppu {
             }
             PpuRegister::Data => {
                 match self.addr.addr {
-                    a @ 0..=0x1fff => eprintln!("write to address register to read-only part of memory (chr rom) 0x{a:0x}"),
+                    a @ 0..=0x1fff => log::debug!("write to read-only part of memory (chr rom) through ppu data register: 0x{a:0x}"),
                     a @ 0x2000..=0x2fff => {
                         self.vram[self.mirror_address(a) as usize - 0x2000] = value
                     }
@@ -168,7 +168,7 @@ impl Ppu {
                     a @ 0x3f00..=0x3fff => {
                         self.palette_table[(a - 0x3f00) as usize & 31] = value;
                     }
-                    x => eprintln!("data written to data register is out of bounds for ppu memory (too big): 0x{x:x}"),
+                    x => log::debug!("data written to data register is out of bounds for ppu memory (too big): 0x{x:x}"),
                 };
 
                 self.addr.addr += self.controller_register.vram_increment;

@@ -73,7 +73,7 @@ fn run_ppu(
             }
 
             if let Err(e) = cpu.tick(&mut ppu) {
-                eprintln!("cpu stopped");
+                log::warn!("cpu stopped");
                 return Err(e);
             }
 
