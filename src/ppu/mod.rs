@@ -217,10 +217,8 @@ impl Ppu {
             }
             PpuRegister::OamAddress => {}
             PpuRegister::OamData => {}
-            PpuRegister::Scroll => {
-            }
-            PpuRegister::Address => {
-            }
+            PpuRegister::Scroll => {}
+            PpuRegister::Address => {}
             PpuRegister::Data => {
                 self.bus = match self.addr.addr {
                     a @ 0..=0x1fff => {
@@ -546,13 +544,7 @@ impl Ppu {
         sprite_zero_hit
     }
 
-    fn draw_sprites(
-        &self,
-        cpu: &mut impl Cpu,
-        screen: &mut ScreenWriter,
-
-        name_table: u16,
-    ) -> bool {
+    fn draw_sprites(&self, cpu: &mut impl Cpu, screen: &mut ScreenWriter, name_table: u16) -> bool {
         let mut sprite_zero_hit = false;
 
         for i in (0..8).rev() {
