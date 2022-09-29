@@ -393,6 +393,7 @@ impl Ppu {
         ]
     }
 
+    // returns true if a tile was drawn on this pixel
     #[allow(clippy::too_many_arguments)]
     fn draw_pixel(
         &self,
@@ -401,7 +402,7 @@ impl Ppu {
         x: usize,
         y: usize,
         name_table_address: u16,
-    ) {
+    ) -> bool {
         let scroll_x = self.scroll.x;
         let scroll_y = self.scroll.y;
         let scrolled_x = (x as isize + scroll_x as isize).rem_euclid(WIDTH as isize * 2) as usize;
@@ -451,6 +452,8 @@ impl Ppu {
         }
 
         screen.draw_pixel(x, y, color);
+
+        bit_lower || bit_upper
     }
 
     #[inline]
@@ -521,14 +524,7 @@ impl Ppu {
         if sprite[2] & 0b0000_0100 > 0 {
             sprite_zero_hit = true;
         }
-
-        let behind_background = sprite[2] & 0b0010_0000 > 0;
-
-        if behind_background {
-            self.draw_pixel(cpu, screen, x, y, name_table);
-            return sprite_zero_hit;
-        }
-
+        
         if self.mask_register.emph_red {
             color.0 = 0xff;
         }
@@ -537,6 +533,14 @@ impl Ppu {
         }
         if self.mask_register.emph_blue {
             color.2 = 0xff;
+        }
+
+        let behind_background = sprite[2] & 0b0010_0000 > 0;
+
+        // Don't draw a background sprite over background tiles,
+        // but do draw it over the background color
+        if behind_background && self.draw_pixel(cpu, screen, x, y, scroll_x, scroll_y, name_table) {
+            return sprite_zero_hit;
         }
 
         screen.draw_pixel(x, y, color);
