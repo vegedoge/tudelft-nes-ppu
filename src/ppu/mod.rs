@@ -27,6 +27,7 @@ pub struct Ppu {
     status_register: StatusRegister,
     addr: AddrRegister,
     scroll: ScrollRegister,
+    scroll_access: ScrollRegister,
 
     oam_addr: OamAddrRegister,
 
@@ -67,6 +68,7 @@ impl Ppu {
             status_register: Default::default(),
             addr: Default::default(),
             scroll: Default::default(),
+            scroll_access: Default::default(),
             oam_addr: Default::default(),
             scroll_addr_latch: true,
             palette_table: [0; 32],
@@ -146,7 +148,7 @@ impl Ppu {
                 self.oam_addr.addr = self.oam_addr.addr.wrapping_add(1);
             }
             PpuRegister::Scroll => {
-                self.scroll.write(value, !self.scroll_addr_latch);
+                self.scroll_access.write(value, !self.scroll_addr_latch);
                 self.scroll_addr_latch = !self.scroll_addr_latch;
             }
             PpuRegister::Address => {
@@ -248,6 +250,16 @@ impl Ppu {
 
         if self.line_progress >= 257 && self.line_progress <= 320 {
             self.oam_addr.write(0);
+        }
+
+        // Update x scroll every line
+        if self.line_progress == 256 {
+            self.scroll.x = self.scroll_access.x;
+        }
+
+        // Update y scroll every screen
+        if self.line_progress == 304 && self.scanline == 0 {
+            self.scroll.y = self.scroll_access.y;
         }
 
         if self.line_progress > 340 {
