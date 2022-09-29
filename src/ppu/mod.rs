@@ -26,6 +26,7 @@ pub struct Ppu {
     mask_register: MaskRegister,
     status_register: StatusRegister,
     addr: AddrRegister,
+    addr_new_nametable: u16,
     scroll: ScrollRegister,
     scroll_access: ScrollRegister,
 
@@ -67,6 +68,7 @@ impl Ppu {
             mask_register: Default::default(),
             status_register: Default::default(),
             addr: Default::default(),
+            addr_new_nametable: 0x2000,
             scroll: Default::default(),
             scroll_access: Default::default(),
             oam_addr: Default::default(),
@@ -137,7 +139,16 @@ impl Ppu {
         self.bus = value;
 
         match register {
-            PpuRegister::Controller => self.controller_register.write(value),
+            PpuRegister::Controller => {
+                self.controller_register.write(value);
+                self.addr_new_nametable = match value & 0b11 {
+                    0b00 => 0x2000,
+                    0b01 => 0x2400,
+                    0b10 => 0x2800,
+                    0b11 => 0x2c00,
+                    _ => unreachable!(),
+                }
+            }
             PpuRegister::Mask => self.mask_register.write(value),
             PpuRegister::Status => { /* Nothing */ }
             PpuRegister::OamAddress => {
@@ -152,6 +163,15 @@ impl Ppu {
                 self.scroll_addr_latch = !self.scroll_addr_latch;
             }
             PpuRegister::Address => {
+                if self.scroll_addr_latch {
+                    self.addr_new_nametable = match value & 0b1100 {
+                        0b0000 => 0x2000,
+                        0b0100 => 0x2400,
+                        0b1000 => 0x2800,
+                        0b1100 => 0x2c00,
+                        _ => unreachable!(),
+                    }
+                }
                 self.addr.write(value, self.scroll_addr_latch);
                 self.scroll_addr_latch = !self.scroll_addr_latch;
             }
@@ -198,10 +218,8 @@ impl Ppu {
             PpuRegister::OamAddress => {}
             PpuRegister::OamData => {}
             PpuRegister::Scroll => {
-                self.scroll_addr_latch = true;
             }
             PpuRegister::Address => {
-                self.scroll_addr_latch = true;
             }
             PpuRegister::Data => {
                 self.bus = match self.addr.addr {
@@ -254,11 +272,15 @@ impl Ppu {
 
         // Update x scroll every line
         if self.line_progress == 256 {
+            self.controller_register.nametable_address &= !0x0400;
+            self.controller_register.nametable_address |= self.addr_new_nametable & 0x400;
             self.scroll.x = self.scroll_access.x;
         }
 
         // Update y scroll every screen
         if self.line_progress == 304 && self.scanline == 0 {
+            self.controller_register.nametable_address &= !0x0800;
+            self.controller_register.nametable_address |= self.addr_new_nametable & 0x800;
             self.scroll.y = self.scroll_access.y;
         }
 
@@ -380,10 +402,10 @@ impl Ppu {
         screen: &mut ScreenWriter,
         x: usize,
         y: usize,
-        scroll_x: u8,
-        scroll_y: u8,
         name_table_address: u16,
     ) {
+        let scroll_x = self.scroll.x;
+        let scroll_y = self.scroll.y;
         let scrolled_x = (x as isize + scroll_x as isize).rem_euclid(WIDTH as isize * 2) as usize;
         let scrolled_y = (y as isize + scroll_y as isize).rem_euclid(HEIGHT as isize * 2) as usize;
 
@@ -449,8 +471,6 @@ impl Ppu {
         y: usize,
         mut sprite_x_off: u16,
         mut sprite_y_off: u16,
-        scroll_x: u8,
-        scroll_y: u8,
         name_table: u16,
     ) -> bool {
         let mut sprite_zero_hit = false;
@@ -507,7 +527,7 @@ impl Ppu {
         let behind_background = sprite[2] & 0b0010_0000 > 0;
 
         if behind_background {
-            self.draw_pixel(cpu, screen, x, y, scroll_x, scroll_y, name_table);
+            self.draw_pixel(cpu, screen, x, y, name_table);
             return sprite_zero_hit;
         }
 
@@ -531,8 +551,6 @@ impl Ppu {
         cpu: &mut impl Cpu,
         screen: &mut ScreenWriter,
 
-        scroll_x: u8,
-        scroll_y: u8,
         name_table: u16,
     ) -> bool {
         let mut sprite_zero_hit = false;
@@ -555,8 +573,6 @@ impl Ppu {
                     self.scanline,
                     (self.line_progress - sprite_x as usize) as u16,
                     (self.scanline - sprite_y as usize) as u16,
-                    scroll_x,
-                    scroll_y,
                     name_table,
                 );
             }
@@ -577,12 +593,10 @@ impl Ppu {
                 screen,
                 self.line_progress,
                 self.scanline,
-                self.scroll.x,
-                self.scroll.y,
                 nametable_addr,
             );
 
-            if self.draw_sprites(cpu, screen, self.scroll.x, self.scroll.y, nametable_addr) {
+            if self.draw_sprites(cpu, screen, nametable_addr) {
                 self.status_register.sprite_zero_hit = true;
             }
         }
