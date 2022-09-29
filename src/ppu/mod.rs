@@ -524,7 +524,7 @@ impl Ppu {
         if sprite[2] & 0b0000_0100 > 0 {
             sprite_zero_hit = true;
         }
-        
+
         if self.mask_register.emph_red {
             color.0 = 0xff;
         }
@@ -539,7 +539,7 @@ impl Ppu {
 
         // Don't draw a background sprite over background tiles,
         // but do draw it over the background color
-        if behind_background && self.draw_pixel(cpu, screen, x, y, scroll_x, scroll_y, name_table) {
+        if behind_background && self.draw_pixel(cpu, screen, x, y, name_table) {
             return sprite_zero_hit;
         }
 
