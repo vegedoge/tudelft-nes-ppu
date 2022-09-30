@@ -62,12 +62,12 @@ impl Ppu {
         Self {
             scanline: 0,
             line_progress: 0,
-            controller_register: Default::default(),
-            mask_register: Default::default(),
-            status_register: Default::default(),
-            addr: Default::default(),
-            scroll: Default::default(),
-            oam_addr: Default::default(),
+            controller_register: ControllerRegister::default(),
+            mask_register: MaskRegister::default(),
+            status_register: StatusRegister::default(),
+            addr: AddrRegister::default(),
+            scroll: ScrollRegister::default(),
+            oam_addr: OamAddrRegister::default(),
             scroll_addr_latch: true,
             palette_table: [0; 32],
             vram: [0; 4096],
@@ -157,10 +157,10 @@ impl Ppu {
                 match self.addr.addr {
                     a @ 0..=0x1fff => log::debug!("write to read-only part of memory (chr rom) through ppu data register: 0x{a:0x}"),
                     a @ 0x2000..=0x2fff => {
-                        self.vram[self.mirror_address(a) as usize - 0x2000] = value
+                        self.vram[self.mirror_address(a) as usize - 0x2000] = value;
                     }
                     a @ 0x3000..=0x3eff => {
-                        self.vram[self.mirror_address(a - 0x1000) as usize - 0x2000] = value
+                        self.vram[self.mirror_address(a - 0x1000) as usize - 0x2000] = value;
                     }
                     a @ (0x3f10 | 0x3f14 | 0x3f18 | 0x3f1c) => {
                         self.palette_table[(a - 0x3f10) as usize] = value;
@@ -183,13 +183,16 @@ impl Ppu {
     /// to one of the addresses as defined in the spec (and also mentioned in the docs of [`PpuRegister`])
     ///
     /// We ask for a reference to the cpu here, since we sometimes need to read from the cartridge.
+    ///
+    /// # Panics
+    /// Can panic when address in data register is out of bounds
     pub fn read_ppu_register(&mut self, register: PpuRegister, cpu: &impl Cpu) -> u8 {
         match register {
             PpuRegister::Controller => {}
             PpuRegister::Mask => {}
             PpuRegister::Status => {
                 let value = self.status_register.read();
-                self.bus &= 0b00011111;
+                self.bus &= 0b0001_1111;
                 self.bus |= value;
                 self.scroll_addr_latch = true;
             }
@@ -290,12 +293,12 @@ impl Ppu {
 
             // we've just passed the 240th line, vblank begins!
             if self.scanline == 241 {
-                self.start_vblank(cpu, screen)
+                self.start_vblank(cpu, screen);
             }
 
             if self.scanline > 261 {
                 self.scanline = 0;
-                self.end_vblank()
+                self.end_vblank();
             }
         }
     }
@@ -446,12 +449,12 @@ impl Ppu {
     ) -> bool {
         let mut sprite_zero_hit = false;
 
-        let tile_num = sprite[1] as u16;
+        let tile_num = u16::from(sprite[1]);
 
         let flip_y = sprite[2] & 0b1000_0000 > 0;
         let flip_x = sprite[2] & 0b0100_0000 > 0;
         if flip_y {
-            sprite_y_off = (self.controller_register.sprite_size.1 as u16 - 1) - sprite_y_off;
+            sprite_y_off = (u16::from(self.controller_register.sprite_size.1) - 1) - sprite_y_off;
         }
         if !flip_x {
             sprite_x_off = 7 - sprite_x_off;

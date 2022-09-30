@@ -53,32 +53,32 @@ impl Default for ControllerRegister {
 
 impl ControllerRegister {
     pub fn write(&mut self, value: u8) {
-        self.nametable_address = match value & 0b00000011 {
+        self.nametable_address = match value & 0b0000_0011 {
             0 => 0x2000,
             1 => 0x2400,
             2 => 0x2800,
             3 => 0x2c00,
             _ => unreachable!(),
         };
-        self.vram_increment = if (value & 0b00000100) > 0 { 32 } else { 1 };
-        self.sprite_pattern_address = if (value & 0b00001000) > 0 {
+        self.vram_increment = if (value & 0b0000_0100) > 0 { 32 } else { 1 };
+        self.sprite_pattern_address = if (value & 0b0000_1000) > 0 {
             0x1000
         } else {
             0x0000
         };
-        self.background_pattern_address = if (value & 0b00010000) > 0 {
+        self.background_pattern_address = if (value & 0b0001_0000) > 0 {
             0x1000
         } else {
             0x0000
         };
-        self.sprite_size = if (value & 0b00100000) > 0 {
+        self.sprite_size = if (value & 0b0010_0000) > 0 {
             (8, 16)
         } else {
             (8, 8)
         };
 
-        self.master_slave_select = (value & 0b01000000) > 0;
-        self.should_generate_vblank_nmi = (value & 0b10000000) > 0;
+        self.master_slave_select = (value & 0b0100_0000) > 0;
+        self.should_generate_vblank_nmi = (value & 0b1000_0000) > 0;
 
         self.binary_value = value;
     }
@@ -117,14 +117,14 @@ impl Default for MaskRegister {
 
 impl MaskRegister {
     pub fn write(&mut self, value: u8) {
-        self.greyscale = (value & 0b00000001) > 0;
-        self.show_bg_left = (value & 0b00000010) > 0;
-        self.show_sprites_left = (value & 0b00000100) > 0;
-        self.show_background = (value & 0b00001000) > 0;
-        self.show_sprites = (value & 0b00010000) > 0;
-        self.emph_red = (value & 0b00100000) > 0;
-        self.emph_green = (value & 0b01000000) > 0;
-        self.emph_blue = (value & 0b10000000) > 0;
+        self.greyscale = (value & 0b0000_0001) > 0;
+        self.show_bg_left = (value & 0b0000_0010) > 0;
+        self.show_sprites_left = (value & 0b0000_0100) > 0;
+        self.show_background = (value & 0b0000_1000) > 0;
+        self.show_sprites = (value & 0b0001_0000) > 0;
+        self.emph_red = (value & 0b0010_0000) > 0;
+        self.emph_green = (value & 0b0100_0000) > 0;
+        self.emph_blue = (value & 0b1000_0000) > 0;
 
         self.binary_value = value;
     }
@@ -141,15 +141,15 @@ impl StatusRegister {
     pub fn read(&mut self) -> u8 {
         let value = (self
             .sprite_overflow
-            .then_some(0b00100000)
+            .then_some(0b0010_0000)
             .unwrap_or_default())
             | (self
                 .sprite_zero_hit
-                .then_some(0b01000000)
+                .then_some(0b0100_0000)
                 .unwrap_or_default())
             | (self
                 .vblank_started
-                .then_some(0b10000000)
+                .then_some(0b1000_0000)
                 .unwrap_or_default());
 
         // SOMEHOW this is the expected behavior
@@ -168,10 +168,10 @@ impl AddrRegister {
     pub fn write(&mut self, value: u8, scroll_addr_latch: bool) {
         if scroll_addr_latch {
             self.addr &= 0x00ff;
-            self.addr |= (value as u16) << 8;
+            self.addr |= u16::from(value) << 8;
         } else {
             self.addr &= 0xff00;
-            self.addr |= value as u16;
+            self.addr |= u16::from(value);
         }
 
         if self.addr > 0x3fff {

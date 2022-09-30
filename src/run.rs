@@ -16,13 +16,12 @@ fn run_ppu(
     writer: &mut ScreenWriter,
     max_cycles: Option<usize>,
 ) -> Result<(), Box<dyn Error>> {
+    const ITER_PER_CYCLE: usize = 1000;
     let mut ppu = Ppu::new(mirroring);
 
     let mut busy_time = Duration::default();
     let mut cycles = 0;
     let mut last_tick = Instant::now();
-
-    const ITER_PER_CYCLE: usize = 1000;
 
     loop {
         for _ in 0..ITER_PER_CYCLE {
@@ -67,7 +66,7 @@ fn run_ppu(
                             // skip over previous iterations
                             last_tick = Instant::now();
                         }
-                        _ => {}
+                        Message::Pause(false) => {}
                     }
                 }
             }
@@ -140,6 +139,9 @@ where
 ///
 /// This function *has to be called from the main thread*. This means it will not
 /// work from unit tests. Use [`run_cpu_headless`] there.
+///
+/// # Panics
+/// [`run_cpu`] can panic when the `cpu` returns an Error
 pub fn run_cpu<CPU>(mut cpu: CPU, mirroring: Mirroring)
 where
     CPU: Cpu + Send + 'static,

@@ -5,7 +5,7 @@ pub const HEIGHT: u32 = 240;
 
 /// CPU frequency constant. This assumes NTSC emulation (instead of PAL).
 /// That's also what's emulated in the rest of the ppu.
-pub const CPU_FREQ: f64 = 1.789773 * 1_000_000.0; //hz
+pub const CPU_FREQ: f64 = 1.789_773 * 1_000_000.0; //hz
 
 mod cpu;
 mod ppu;
