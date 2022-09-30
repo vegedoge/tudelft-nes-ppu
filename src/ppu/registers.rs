@@ -139,9 +139,18 @@ pub(crate) struct StatusRegister {
 
 impl StatusRegister {
     pub fn read(&mut self) -> u8 {
-        let value = (self.sprite_overflow.then(|| 0b00100000).unwrap_or_default())
-            | (self.sprite_zero_hit.then(|| 0b01000000).unwrap_or_default())
-            | (self.vblank_started.then(|| 0b10000000).unwrap_or_default());
+        let value = (self
+            .sprite_overflow
+            .then_some(0b00100000)
+            .unwrap_or_default())
+            | (self
+                .sprite_zero_hit
+                .then_some(0b01000000)
+                .unwrap_or_default())
+            | (self
+                .vblank_started
+                .then_some(0b10000000)
+                .unwrap_or_default());
 
         // SOMEHOW this is the expected behavior
         self.vblank_started = false;

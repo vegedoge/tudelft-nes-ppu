@@ -282,7 +282,7 @@ impl Ppu {
                     // We set bit 2 of byte 2 whenever this sprite is sprite 0 (it has special behavior).
                     // In the actual NES hardware this bit is *unused* so we *abuse* it
                     self.secondary_oam[sprite_index * 4 + 2] =
-                        b2 | (index == 0).then_some(0b0000_0100).unwrap_or(0);
+                        b2 | if index == 0 { 0b0000_0100 } else { 0 };
                     self.secondary_oam[sprite_index * 4 + 3] = sprite.3;
                     sprite_index += 1;
                 }
@@ -466,10 +466,7 @@ impl Ppu {
                 tile_num & 0xfffe
             };
 
-            (
-                (old_tile_num & 1 == 1).then_some(0x1000).unwrap_or(0),
-                tile_num,
-            )
+            (if old_tile_num & 1 == 1 { 0x1000 } else { 0 }, tile_num)
         } else {
             (self.controller_register.sprite_pattern_address, tile_num)
         };
