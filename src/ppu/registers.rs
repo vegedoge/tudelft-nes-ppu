@@ -37,7 +37,7 @@ pub(crate) struct ControllerRegister {
 impl Default for ControllerRegister {
     fn default() -> Self {
         let mut s = Self {
-            nametable_address: 0,
+            nametable_address: 0x2000,
             vram_increment: 0,
             sprite_pattern_address: 0,
             background_pattern_address: 0,
@@ -53,13 +53,6 @@ impl Default for ControllerRegister {
 
 impl ControllerRegister {
     pub fn write(&mut self, value: u8) {
-        self.nametable_address = match value & 0b00000011 {
-            0 => 0x2000,
-            1 => 0x2400,
-            2 => 0x2800,
-            3 => 0x2c00,
-            _ => unreachable!(),
-        };
         self.vram_increment = if (value & 0b00000100) > 0 { 32 } else { 1 };
         self.sprite_pattern_address = if (value & 0b00001000) > 0 {
             0x1000
