@@ -1,7 +1,6 @@
 use crate::ppu::colors::Color;
 use crate::WIDTH;
 use pixels::Pixels;
-use std::ops::Deref;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use winit::window::Window;
@@ -19,7 +18,7 @@ pub struct Buttons {
 }
 
 impl Buttons {
-    pub fn get_by_index(&self, idx: u8) -> bool {
+    pub fn get_by_index(self, idx: u8) -> bool {
         match idx {
             0 => self.a,
             1 => self.b,
@@ -86,7 +85,7 @@ impl ScreenWriter {
             if let ScreenReader::Real {
                 pixels: reader_pixels,
                 ..
-            } = screen.0.deref()
+            } = &*screen.0
             {
                 reader_pixels
                     .lock()
@@ -124,7 +123,7 @@ impl Screen {
     }
 
     pub fn redraw(&mut self) {
-        if let ScreenReader::Real { pixels, .. } = self.0.deref() {
+        if let ScreenReader::Real { pixels, .. } = &*self.0 {
             pixels
                 .lock()
                 .expect("failed to lock")
