@@ -1,5 +1,5 @@
-use std::error::Error;
 use crate::Ppu;
+use std::error::Error;
 
 /// To use your cpu with the provided PPU library, you need to implement this trait for
 /// your CPU.

@@ -2,7 +2,6 @@ use crate::cpu::Cpu;
 use crate::screen::{ButtonName, Message, Screen, ScreenWriter};
 use crate::{Mirroring, Ppu, CPU_FREQ, HEIGHT, WIDTH};
 use pixels::{Pixels, SurfaceTexture};
-use std::error::Error;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use std::{env, thread};
