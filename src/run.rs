@@ -10,12 +10,12 @@ use winit::event::{ElementState, Event, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 
-fn run_ppu(
+fn run_ppu<CPU: Cpu>(
     mirroring: Mirroring,
-    cpu: &mut impl Cpu,
+    cpu: &mut CPU,
     writer: &mut ScreenWriter,
     max_cycles: Option<usize>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), CPU::TickError> {
     let mut ppu = Ppu::new(mirroring);
 
     let mut busy_time = Duration::default();
@@ -115,7 +115,7 @@ pub fn run_cpu_headless_for<CPU>(
     cpu: &mut CPU,
     mirroring: Mirroring,
     cycle_limit: usize,
-) -> Result<(), Box<dyn Error>>
+) -> Result<(), CPU::TickError>
 where
     CPU: Cpu + 'static,
 {
@@ -126,7 +126,7 @@ where
 
 /// Runs the cpu as if connected to a PPU, but doesn't actually open
 /// a window. This can be useful in tests.
-pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring) -> Result<(), Box<dyn Error>>
+pub fn run_cpu_headless<CPU>(cpu: &mut CPU, mirroring: Mirroring) -> Result<(), CPU::TickError>
 where
     CPU: Cpu + 'static,
 {
