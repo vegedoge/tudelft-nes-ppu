@@ -16,3 +16,4 @@ pub use cpu::Cpu;
 pub use ppu::mirroring::Mirroring;
 pub use ppu::{registers::PpuRegister, Ppu};
 pub use run::{run_cpu, run_cpu_headless, run_cpu_headless_for};
+pub use screen::Buttons;
