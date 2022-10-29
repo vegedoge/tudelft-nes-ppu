@@ -3,7 +3,8 @@ use crate::ppu::colors::{Color, NES_COLOR_PALLETE};
 use crate::ppu::registers::{
     AddrRegister, ControllerRegister, MaskRegister, OamAddrRegister, ScrollRegister, StatusRegister,
 };
-use crate::screen::{Buttons, ScreenWriter};
+use crate::screen::ScreenWriter;
+use crate::Buttons;
 use crate::{Mirroring, HEIGHT, WIDTH};
 use itertools::Itertools;
 use registers::PpuRegister;
