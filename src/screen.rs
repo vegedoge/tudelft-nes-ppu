@@ -5,6 +5,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use winit::window::Window;
 
+/// A struct containg all the buttons for one controller and whether they are pressed (`true`) or not (`false`)
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct Buttons {
     pub a: bool,
