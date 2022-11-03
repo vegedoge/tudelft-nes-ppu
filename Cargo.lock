@@ -1019,7 +1019,7 @@ dependencies = [
 
 [[package]]
 name = "tudelft-nes-ppu"
-version = "1.0.5"
+version = "1.0.6"
 dependencies = [
  "itertools",
  "log",
