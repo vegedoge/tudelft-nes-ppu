@@ -91,7 +91,8 @@ impl ScreenWriter {
                 reader_pixels
                     .lock()
                     .expect("failed to lock")
-                    .frame_mut().clone_from_slice(pixels);
+                    .frame_mut()
+                    .clone_from_slice(pixels);
             }
         }
     }
