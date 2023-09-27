@@ -1,5 +1,5 @@
 # Official rust image.
-image: "rust:1.63"
+image: "rust:1.72"
 
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/.cargo

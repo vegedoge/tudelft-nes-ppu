@@ -507,8 +507,8 @@ impl Ppu {
 
         let palette = self.get_sprite_palette(sprite[2] & 0b0000_0011);
 
-        let byte_upper = cpu.ppu_read_chr_rom(bank + (tile_num * 16 + sprite_y_off) as u16);
-        let byte_lower = cpu.ppu_read_chr_rom(bank + (tile_num * 16 + sprite_y_off + 8) as u16);
+        let byte_upper = cpu.ppu_read_chr_rom(bank + tile_num * 16 + sprite_y_off);
+        let byte_lower = cpu.ppu_read_chr_rom(bank + tile_num * 16 + sprite_y_off + 8);
 
         let bit_upper = (byte_upper & 1 << sprite_x_off) != 0;
         let bit_lower = (byte_lower & 1 << sprite_x_off) != 0;
