@@ -91,8 +91,7 @@ impl ScreenWriter {
                 reader_pixels
                     .lock()
                     .expect("failed to lock")
-                    .get_frame()
-                    .clone_from_slice(pixels);
+                    .frame_mut().clone_from_slice(pixels);
             }
         }
     }
@@ -103,8 +102,8 @@ impl Screen {
         (Screen(Arc::new(ScreenReader::Dummy)), ScreenWriter::Dummy)
     }
 
-    pub fn new(mut pixels: Pixels, window: Window) -> (Self, ScreenWriter, Sender<Message>) {
-        let buf = pixels.get_frame().to_vec();
+    pub fn new(pixels: Pixels, window: Window) -> (Self, ScreenWriter, Sender<Message>) {
+        let buf = pixels.frame().to_vec();
         let (tx, rx) = channel();
 
         let screen = Screen(Arc::new(ScreenReader::Real {

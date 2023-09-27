@@ -15,7 +15,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pixels = "0.9.0"
-winit = "0.26.1"
-itertools = "0.10.3"
-log = "0.4.17"
+pixels = "0.13.0"
+winit = "0.28.6"
+itertools = "0.11"
+log = "0.4"
