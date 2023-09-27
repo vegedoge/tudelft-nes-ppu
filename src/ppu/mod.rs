@@ -257,7 +257,7 @@ impl Ppu {
         self.bus
     }
 
-    /// For writes to 0x4041 (see NES docs at [https://www.nesdev.org/wiki/PPU_registers#OAMDMA](https://www.nesdev.org/wiki/PPU_registers#OAMDMA))
+    /// For writes to 0x4014 (see NES docs at [https://www.nesdev.org/wiki/PPU_registers#OAMDMA](https://www.nesdev.org/wiki/PPU_registers#OAMDMA))
     ///
     /// There is no real DMA. When a value is written to 0x4014, you are supposed to pass the PPU
     /// the right 256 bytes instantly, through this function.
