@@ -53,8 +53,8 @@ impl Default for ControllerRegister {
 
 impl ControllerRegister {
     pub fn write(&mut self, value: u8) {
-        self.vram_increment = if (value & 0b00000100) > 0 { 32 } else { 1 };
-        self.sprite_pattern_address = if (value & 0b00001000) > 0 {
+        self.vram_increment = if (value & 0b0000_0100) > 0 { 32 } else { 1 };
+        self.sprite_pattern_address = if (value & 0b0000_1000) > 0 {
             0x1000
         } else {
             0x0000
