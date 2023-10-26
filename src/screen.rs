@@ -6,6 +6,17 @@ use std::sync::{Arc, Mutex};
 use winit::window::Window;
 
 /// A struct containg all the buttons for one controller and whether they are pressed (`true`) or not (`false`)
+/// 
+/// The buttons follow the following mapping to keyboard keys:
+/// 
+/// - a: X
+/// - b: Z
+/// - up: arrow up and W
+/// - down: arrow down and S
+/// - left: arrow left and A
+/// - right: arrow right and D
+/// - select: shift
+/// - start: enter 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct Buttons {
     pub a: bool,
