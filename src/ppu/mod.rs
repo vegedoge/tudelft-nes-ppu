@@ -560,6 +560,7 @@ impl Ppu {
 
             if self.line_progress >= sprite_x as usize
                 && self.line_progress < sprite_x as usize + 8
+                && self.scanline >= sprite_y as usize
                 && sprite_y != 0xff
             {
                 sprite_zero_hit |= self.draw_sprite_pixel(
