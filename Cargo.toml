@@ -3,7 +3,7 @@ name = "tudelft-nes-ppu"
 version = "2.1.0"
 edition = "2021"
 authors = [
-    "Victor Roest <victor@xirion.net>",
+    "Vivian Roest <vivian@0x76.dev>",
     "Jonathan Dönszelmann <jonabent@gmail.com>",
 ]
 description = "support library for the 'software fundamentals' project for the TU Delft"
