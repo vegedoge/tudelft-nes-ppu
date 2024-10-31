@@ -20,7 +20,7 @@ pub trait Cpu {
     /// Only needed when the specific mapper you implement has character RAM, writable memory
     /// on the cartridge. Most games don't require this. If you just don't implement this
     /// method it will default to ignoring all writes (as if there was only character ROM, not RAM)
-    fn ppu_memory_write(&mut self, _address: u16, _value: u8) {}
+    fn ppu_memory_write(&mut self, address: u16, value: u8);
 
     /// Sometimes the PPU needs to give a non-maskable interrupt to the cpu. If it does, this method
     /// is called by the PPU.

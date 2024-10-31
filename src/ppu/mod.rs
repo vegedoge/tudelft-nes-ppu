@@ -136,7 +136,7 @@ impl Ppu {
 
     /// Write to a register of the PPU. This is supposed to be called from the CPU when a write occurs
     /// to one of the addresses as defined in the spec (and also mentioned in the docs of [`PpuRegister`])
-    pub fn write_ppu_register(&mut self, register: PpuRegister, value: u8) {
+    pub fn write_ppu_register(&mut self, register: PpuRegister, value: u8, cpu: &mut impl Cpu) {
         self.bus = value;
 
         match register {
@@ -178,7 +178,7 @@ impl Ppu {
             }
             PpuRegister::Data => {
                 match self.addr.addr {
-                    a @ 0..=0x1fff => log::debug!("write to read-only part of memory (chr rom) through ppu data register: 0x{a:0x}"),
+                    a @ 0..=0x1fff => cpu.ppu_memory_write(a, value),
                     a @ 0x2000..=0x2fff => {
                         self.vram[self.mirror_address(a) as usize - 0x2000] = value;
                     }
